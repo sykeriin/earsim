@@ -79,6 +79,6 @@ ear signals of a held-out trial. Window accuracy, mean over subjects (`results/e
 ## Where this leaves the project
 
 The plan's pivot condition applies: drop the claim that physics-based synthesis from scalp data
-replaces ear-EEG training data. Options are in the PR/README discussion; the cheapest
+replaces ear-EEG training data. The cheapest
 high-value next step that still uses the toolkit is placement/ranking analysis on the real
 Ear-SAAD ear channels (E6), plus reporting these negative results.

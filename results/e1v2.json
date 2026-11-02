@@ -1,0 +1,22 @@
+{
+  "args": {
+    "splits": "interp,ring",
+    "dev_max": 20,
+    "out": "results/e1v2",
+    "ridge": 0.001,
+    "no_extra": false
+  },
+  "git": "b3d14f1",
+  "ring": [
+    "FT7",
+    "FT8",
+    "T7",
+    "T8",
+    "T9",
+    "T10",
+    "TP7",
+    "TP8",
+    "P7",
+    "P8"
+  ]
+}

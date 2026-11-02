@@ -37,7 +37,7 @@ DEFAULT_HELD = ["T9", "T10", "TP7", "TP8", "FT7", "FT8"]
 # Commonly excluded in MOABB/braindecode: different sfreq or broken annotations.
 BAD_SUBJECTS = {88, 89, 92, 100, 104}
 METHODS = [("MNE", 1.0), ("MNE", 3.0), ("MNE", 10.0), ("eLORETA", 3.0)]
-SPLINE_ALPHAS = [1e-5, 1e-7, 1e-9]  # 1e-5 is MNE's interpolate_bads default
+SPLINE_ALPHAS = [1e-9, 1e-7, 1e-5, 1e-4, 1e-3, 1e-2]  # 1e-5 is MNE interpolate_bads default
 
 
 def parse_range(s: str) -> list[int]:

@@ -1,0 +1,37 @@
+{
+  "args": {
+    "subjects": "1-109",
+    "dev": "1-20",
+    "runs": "1,2,4",
+    "held": "T9,T10,TP7,TP8,FT7,FT8",
+    "out": "results/e1_eegbci_wide"
+  },
+  "methods": [
+    [
+      "MNE",
+      1.0
+    ],
+    [
+      "MNE",
+      3.0
+    ],
+    [
+      "MNE",
+      10.0
+    ],
+    [
+      "eLORETA",
+      3.0
+    ]
+  ],
+  "held": [
+    "T9",
+    "T10",
+    "TP7",
+    "TP8",
+    "FT7",
+    "FT8"
+  ],
+  "git": "b3d14f1",
+  "n_subjects": 104
+}

@@ -38,8 +38,12 @@ def _unit_trace(S: np.ndarray) -> np.ndarray:
     return S / t
 
 
-def cortical_bases(ch_pos: dict[str, np.ndarray], parc: str = "aparc"):
-    """(names, S[K, n, n]) for one group per parcel, from the BEM lead field."""
+def cortical_raw(ch_pos: dict[str, np.ndarray], parc: str = "aparc"):
+    """(names, S[K, n, n]) raw (unnormalised) parcel basis covariances G_p G_p^T.
+
+    Raw bases are in absolute lead-field units, so group variances fitted on one
+    montage can be reused on another (see scripts/04_fit_theta_eegmmidb.py).
+    """
     info = make_info(ch_pos)
     fwd = fixed(forward(info))
     G = fwd["sol"]["data"]  # (n_ch, n_src), average-referenced by MNE
@@ -59,8 +63,21 @@ def cortical_bases(ch_pos: dict[str, np.ndarray], parc: str = "aparc"):
             continue
         A = G[:, idx]
         names.append(f"ctx:{lab.name}")
-        mats.append(_unit_trace(A @ A.T))
+        mats.append(A @ A.T)
     return names, np.stack(mats)
+
+
+def avgref_trace(S: np.ndarray) -> np.ndarray:
+    """trace(P S_k P) for each basis, P = average-reference projector."""
+    n = S.shape[1]
+    P = np.eye(n) - 1.0 / n
+    return np.array([np.trace(P @ s @ P) for s in S])
+
+
+def cortical_bases(ch_pos: dict[str, np.ndarray], parc: str = "aparc"):
+    """(names, S[K, n, n]) one group per parcel, scaled to unit average-referenced trace."""
+    names, S = cortical_raw(ch_pos, parc)
+    return names, S / avgref_trace(S)[:, None, None]
 
 
 def dipole_field(ch_xyz: np.ndarray, r0: np.ndarray, p: np.ndarray) -> np.ndarray:

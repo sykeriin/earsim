@@ -150,6 +150,8 @@ def main():
     if args.sweep:
         configs = [dict(radius=r, centre_shift=c) for r in (0.025, 0.032, 0.040) for c in (0.006, 0.012, 0.020)]
 
+    tf = cache.CACHE_DIR / "theta-eegmmidb.npz"
+    xfer = np.load(tf, allow_pickle=False) if tf.exists() else None
     rows, t0 = [], time.time()
     for ci, cfg in enumerate(configs):
         full = ci == 0 and not args.sweep or (args.sweep and cfg == dict(radius=0.032, centre_shift=0.012))
@@ -159,7 +161,8 @@ def main():
         kpos = {c: pos[c] for c in src_names}
         tpos = {c: pos[c] for c in EAR}
         n_src = len(src_names)
-        _, S_all = sources.cortical_bases(pos)
+        bnames, S_raw = sources.cortical_raw(pos)
+        S_all = S_raw / sources.avgref_trace(S_raw)[:, None, None]
         S_src = S_all[:, :n_src, :n_src]
         B = kr.mean_zero_basis(n_src)
         S_B = np.stack([B.T @ s @ B for s in S_src])
@@ -196,6 +199,18 @@ def main():
                 Sig = np.tensordot(th[:-1], S_all, 1) + th[-1] * np.eye(S_all.shape[1])
                 W_k = kr.predict_operator(Sig, np.arange(n_src), np.arange(n_src, n_src + len(EAR)))
                 methods = {"krig_cortex": W_k, **{fam: ops_static[k] for fam, k in pick.items()}}
+                if xfer is not None and full:
+                    # parcel variances fitted on EEGMMIDB (another dataset); refit only a global
+                    # signal scale + white-noise level on the training subjects' scalp covariance
+                    bi_x = [str(b) for b in xfer["bands"]].index(band)
+                    vx = dict(zip([str(n) for n in xfer["names"]], xfer["v"][bi_x]))
+                    v = np.array([vx.get(n, 0.0) for n in bnames])
+                    Sig_sig = np.tensordot(v, S_raw, 1)                         # absolute units
+                    one = np.stack([B.T @ Sig_sig[:n_src, :n_src] @ B])
+                    th2 = kr.fit_theta(one, Ctr, ridge=0.0)
+                    Sig2 = th2[0] * Sig_sig + th2[1] * np.eye(Sig_sig.shape[0])
+                    methods["krig_xfer"] = kr.predict_operator(
+                        Sig2, np.arange(n_src), np.arange(n_src, n_src + len(EAR)))
                 if full:
                     # paired-data ceiling: ridge regression on the other subjects' covariances
                     P = np.eye(n_src) - 1.0 / n_src

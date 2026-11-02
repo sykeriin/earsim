@@ -73,6 +73,29 @@ class Synth:
         return Y
 
 
+def paired_stats(x_scalp, y_ear):
+    """Sufficient statistics of NaN-aware paired covariance between avg-ref'd scalp and ear features."""
+    xr = x_scalp - np.nanmean(x_scalp, 1, keepdims=True)
+    Mx, My = np.isfinite(xr).astype(float), np.isfinite(y_ear).astype(float)
+    Zx = np.nan_to_num(xr - np.nanmean(xr, 0))
+    Zy = np.nan_to_num(y_ear - np.nanmean(y_ear, 0))
+    return Zx.T @ Zx, Mx.T @ Mx, Zx.T @ Zy, Mx.T @ My
+
+
+def oracle_map(stats):
+    """Ridge map (n_ear x n_scalp) from summed paired statistics (learned on REAL paired data)."""
+    Sxx = sum(t[0] for t in stats); Nxx = sum(t[1] for t in stats)
+    Sxy = sum(t[2] for t in stats); Nxy = sum(t[3] for t in stats)
+    Cxx, Cxy = Sxx / np.maximum(Nxx, 1), Sxy / np.maximum(Nxy, 1)
+    lam = 1e-2 * np.trace(Cxx) / Cxx.shape[0]
+    return np.linalg.solve(Cxx + lam * np.eye(Cxx.shape[0]), Cxy).T
+
+
+def apply_map(Wm, x_scalp):
+    xr = x_scalp - np.nanmean(x_scalp, 1, keepdims=True)
+    return np.nan_to_num(xr) @ Wm.T
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--subjects", default="1-15")
@@ -117,6 +140,15 @@ def main():
     ear_pos_in_EAR = [EAR.index(c) for c in AROUND]
     real_around_i = [nidx[c] for c in AROUND]
 
+    def ear_features(trials):
+        if args.ref in ("local", "cross"):
+            rf = aad.local_reference if args.ref == "local" else aad.cross_reference
+            return [rf(t[:, real_around_i], around_groups) for t in trials]
+        return [t[:, real_around_i] - np.nanmean(t[:, src_i], 1, keepdims=True) for t in trials]
+
+    pstats = {o: [paired_stats(t[:, src_i], y) for t, y in zip(data[o][1], ear_features(data[o][1]))]
+              for o in subs}
+
     rows, t0 = [], time.time()
     for s in subs:
         names_s, trials, envs, att = data[s]
@@ -142,7 +174,13 @@ def main():
             Ft_real, _ = aad.prep_features(real_ear[k])
             Ft_scalp, _ = aad.prep_features(scalp[k] - np.nanmean(scalp[k], 1, keepdims=True))
             Ft_syn = {k: aad.prep_features(syn_ear[k][kk])[0] for k, kk in (("synth_krig", k),)}
+            W_other = oracle_map([st for o in subs if o != s for st in pstats[o]])
+            W_self = oracle_map([pstats[s][i] for i in tr])
+            orc_other = [apply_map(W_other, x) for x in scalp]
+            orc_self = [apply_map(W_self, x) for x in scalp]
             plans = {"real_ear": (real_ear, Ft_real),
+                     "synth_oracle_other": (orc_other, Ft_real),
+                     "synth_oracle_self": (orc_self, Ft_real),
                      "synth_krig_selftest": (syn_ear["synth_krig"], Ft_syn["synth_krig"]),
                      "synth_krig": (syn_ear["synth_krig"], Ft_real),
                      "synth_spline": (syn_ear["synth_spline"], Ft_real),
@@ -186,7 +224,8 @@ def summarise(df, out):
     for w in sorted(g.win_s.unique()):
         piv = g[g.win_s == w].pivot(index="subject", columns="method", values="acc")
         for a, b in (("synth_krig", "synth_spline"), ("synth_krig", "real_ear"), ("synth_spline", "real_ear"),
-                     ("synth_krig_selftest", "real_ear")):
+                     ("synth_krig_selftest", "real_ear"), ("synth_oracle_other", "synth_krig"),
+                     ("synth_oracle_self", "synth_krig"), ("synth_oracle_self", "real_ear")):
             d = (piv[a] - piv[b]).dropna()
             p = wilcoxon(d).pvalue if np.any(d != 0) else np.nan
             L.append(f"| {a} - {b} | {w}s | {d.mean():+.3f} | {p:.3g} |")

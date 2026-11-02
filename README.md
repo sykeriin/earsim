@@ -14,7 +14,12 @@ scalp channels). Synthesis is therefore physics-informed spatial extrapolation.
 It must beat spherical-spline interpolation to be worth anything, and it cannot
 recover activity the scalp cap never saw.
 
-## Status (week 1)
+## Status
+
+See [`docs/RESULTS.md`](docs/RESULTS.md) for findings. Headline: physics-based synthesis helps a little
+inside a scalp cap and does not help on real ear-EEG; zero-shot attention decoding from synthetic ear data fails.
+
+## Modules (week 1 table, now extended)
 
 | Module | State |
 |---|---|

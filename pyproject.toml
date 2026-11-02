@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "earsim"
+version = "0.0.1"
+description = "Synthesise labelled EEG for arbitrary wearable electrode layouts and optimise placement"
+requires-python = ">=3.10"
+dependencies = ["mne>=1.8", "numpy", "scipy", "scikit-learn", "nibabel", "pandas"]
+
+[project.optional-dependencies]
+dl = ["torch", "braindecode", "lightgbm"]
+dev = ["pytest"]
+
+[tool.setuptools]
+packages = ["earsim"]

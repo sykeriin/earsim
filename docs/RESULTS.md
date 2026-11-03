@@ -66,6 +66,26 @@ ear signals of a held-out trial. Window accuracy, mean over subjects (`results/e
   but that input contains the mean scalp signal, which a real earbud cannot record. It is excluded
   from the claims and was not run on all subjects.
 
+## E6 (real data): where to put 1-3 electrodes in one ear (Ear-SAAD, 15 subjects)
+
+`scripts/06_placement_real.py`, `results/e6_real.md`. Candidates are bipolar pairs inside one ear's
+device. Greedy forward selection on the other 14 subjects, scored on the held-out subject with a
+subject-specific decoder (leave-one-trial-out), 30 s windows. Chance = 0.5.
+
+- cEEGrid, 3 pairs: greedy 0.587 (left) / 0.623 (right) vs 0.567 / 0.582 for random pairs from the same
+  strip (+0.020, p=0.022; +0.041, p=0.0084; Wilcoxon, uncorrected). Weak but consistently above
+  random in 11-13 of 15 subjects. The 19-electrode two-ear decoder reaches 0.62 at 30 s (E3), so a
+  well-placed 3-pair single strip is not clearly worse than the full array here.
+- In-ear mould (6 electrodes/ear): 0.51-0.55 for any k, essentially chance; greedy search helps only
+  for a single pair (+0.03 left, +0.02 right, uncorrected) and not for k=2-3.
+- Selected cEEGrid pairs are widely spaced (e.g. cEL5-cEL8, cER3-cER6), not neighbours.
+- Pairs containing a dead channel are scored as unusable for that subject (contact quality counts).
+- 12 comparisons were tested and none survives a Bonferroni correction (0.05/12): treat as
+  suggestive. The reported ranking stability (Spearman 0.92-0.98 between leave-one-subject-out
+  rankings) is inflated because those rankings share 13 of 15 subjects.
+- Absolute decoding is weak (mean leave-one-trial-out correlation of the best pair is about 0.02), so
+  differences between pairs are small compared to the subject-to-subject spread.
+
 ## What these results do and do not show
 
 - They do not show that ear-EEG decoding is impossible from scalp data in general: only linear scalp
@@ -79,6 +99,6 @@ ear signals of a held-out trial. Window accuracy, mean over subjects (`results/e
 ## Where this leaves the project
 
 The plan's pivot condition applies: drop the claim that physics-based synthesis from scalp data
-replaces ear-EEG training data. The cheapest
-high-value next step that still uses the toolkit is placement/ranking analysis on the real
-Ear-SAAD ear channels (E6), plus reporting these negative results.
+replaces ear-EEG training data. What remains useful and supported: the transfer/kriging code as a
+within-cap interpolation tool, the Ear-SAAD pipeline (robust covariances, decoding, placement search on
+real ear data), and these negative results as a benchmark.

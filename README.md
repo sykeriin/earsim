@@ -36,7 +36,12 @@ inside a scalp cap and does not help on real ear-EEG; zero-shot attention decodi
 ```bash
 pip install -e ".[dev]"
 python -m pytest -q tests          # first run downloads fsaverage (~200 MB)
-python scripts/01_leave_channels_out.py --subjects 1-109 --dev 1-20
+python scripts/01_leave_channels_out.py --subjects 1-109 --dev 1-20   # E1
+python scripts/02_cache_covs.py && python scripts/02_kriging_e1.py      # E1 v2 (kriging)
+python scripts/00_download_earsaad.py                                  # ~14 GB, Zenodo 16536441
+python scripts/03_earsaad_cov.py && python scripts/03_e2.py            # E2
+python scripts/05_e3.py --ref cross                                    # E3 (needs preprocessedData.zip unpacked in data/earsaad)
+python scripts/06_placement_real.py                                    # E6 on real ear data
 ```
 
 Data and the cache go to `../data` by default; override with `EARSIM_DATA=/path`.

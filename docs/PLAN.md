@@ -1,3 +1,8 @@
+> **Status banner (3 Nov 2026).** This is the original plan, kept for reference. Experiments since then did
+> not support its headline claim (zero-shot decoders from synthetic ear-EEG). See `RESULTS.md` for findings and
+> `NEXT_STEPS.md` for the revised plan. Revision 1 below (kriging) was implemented; its ocular/muscle source
+> groups made predictions worse and are off by default.
+
 # earsim: Form-factor simulator for wearable EEG (full project plan)
 
 Date written: Mon 2 Nov 2026. Author context: solo, part-time. The plan assumes about 12–15 h/week.

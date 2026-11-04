@@ -62,9 +62,12 @@ ear signals of a held-out trial. Window accuracy, mean over subjects (`results/e
 - Even maps fitted on **real paired ear data** fail, so the limit is not specific to the physics
   model: for this task and these signals, a linear function of scalp EEG does not reproduce the
   attention-relevant part of the ear recording.
-- A scalp-mean reference makes synthetic training look fine on a 3-subject smoke test (0.63 at 60 s),
-  but that input contains the mean scalp signal, which a real earbud cannot record. It is excluded
-  from the claims and was not run on all subjects.
+- With the scalp-mean reference (not device-realistic: the decoder input then contains the mean scalp
+  signal), all 15 subjects (`results/e3_scalp_mean.md`): synthetic-kriging 0.517 / 0.535 / 0.538 at
+  10 / 30 / 60 s (vs chance, p=0.21 at 60 s), synthetic-spline 0.505 / 0.512 / 0.530, maps learned on real
+  paired data 0.524-0.576, real-ear decoder 0.579 / 0.633 / 0.671. A 3-subject smoke test had suggested
+  0.63 for the kriging decoder; that was small-sample noise. Conclusion unchanged: synthetic-trained
+  decoders do not approach real-ear ones under either reference.
 
 ## E6 (real data): where to put 1-3 electrodes in one ear (Ear-SAAD, 15 subjects)
 
